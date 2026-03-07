@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_USER     = "kranthi6166"            // ✅ your DockerHub username
-        IMAGE_NAME      = "java-project-maven-new" // ✅ project image name
+        DOCKER_USER     = "srinivasu56"            // ✅ your DockerHub username
+        IMAGE_NAME      = "java-project-maven-new-hotstar" // ✅ project image name
         IMAGE_TAG       = "latest"
         CONTAINER_NAME  = "HOTSTAR-CONTAINER"
     }
@@ -35,7 +35,7 @@ pipeline {
                 sh '''
                     echo "Running container locally..."
                     docker rm -f ${CONTAINER_NAME} || true
-                    docker run -d --name ${CONTAINER_NAME} -p 8085:8080 ${DOCKER_USER}/${IMAGE_NAME}:${IMAGE_TAG}
+                    docker run -d --name ${CONTAINER_NAME} -p 8081:8080 ${DOCKER_USER}/${IMAGE_NAME}:${IMAGE_TAG}
                     sleep 5
                     docker logs ${CONTAINER_NAME}
                 '''
@@ -62,7 +62,7 @@ pipeline {
                     docker service rm hotstar-service || true
                     docker service create \
                         --name hotstar-service \
-                        --publish 8085:8080 \
+                        --publish 8081:8080 \
                         --replicas 3 \
                         ${DOCKER_USER}/${IMAGE_NAME}:${IMAGE_TAG}
                 '''
