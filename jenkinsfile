@@ -11,7 +11,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/Naveen1-6/HOTSTAR-Project.git'
+                git branch: 'main', url: 'https://github.com/Srinivasu2000/HOTSTAR-Project.git'
             }
         }
 
