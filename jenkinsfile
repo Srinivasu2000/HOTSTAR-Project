@@ -62,7 +62,7 @@ pipeline {
                     docker service rm hotstar-service || true
                     docker service create \
                         --name hotstar-service \
-                        --publish 8081:8080 \
+                        --publish 8082:8080 \
                         --replicas 3 \
                         ${DOCKER_USER}/${IMAGE_NAME}:${IMAGE_TAG}
                 '''
