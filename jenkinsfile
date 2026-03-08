@@ -35,7 +35,7 @@ pipeline {
                 sh '''
                     echo "Running container locally..."
                     docker rm -f ${CONTAINER_NAME} || true
-                    docker run -d --name ${CONTAINER_NAME} -p 8081:8080 ${DOCKER_USER}/${IMAGE_NAME}:${IMAGE_TAG}
+                    docker run -d --name ${CONTAINER_NAME} -p 8082:8080 ${DOCKER_USER}/${IMAGE_NAME}:${IMAGE_TAG}
                     sleep 5
                     docker logs ${CONTAINER_NAME}
                 '''
