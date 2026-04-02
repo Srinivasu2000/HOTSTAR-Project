@@ -3,9 +3,10 @@ pipeline {
 
     environment {
         DOCKER_USER     = "srinivasu56"            // ✅ your DockerHub username
-        IMAGE_NAME      = "java-project-maven-new-hotstar" // ✅ project image name
+        IMAGE_NAME      = "java-project-hotstar" // ✅ project image name
         IMAGE_TAG       = "latest"
         CONTAINER_NAME  = "HOTSTAR-CONTAINER"
+        DOCKER_CREDS = "docker-cred"
     }
 
     stages {
@@ -14,12 +15,15 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/Srinivasu2000/HOTSTAR-Project.git'
             }
         }
-
-        stage('Build App') {
-            steps {
-                sh 'mvn clean package -DskipTests'
-            }
-        }
+        
+        stage('Build Maven Project') {
+    steps {
+        sh '''
+            echo "Building WAR file using Maven..."
+            mvn clean package
+        '''
+    }
+}
 
         stage('Build Docker Image') {
             steps {
@@ -35,38 +39,33 @@ pipeline {
                 sh '''
                     echo "Running container locally..."
                     docker rm -f ${CONTAINER_NAME} || true
-                    docker run -d --name ${CONTAINER_NAME} -p 8082:8080 ${DOCKER_USER}/${IMAGE_NAME}:${IMAGE_TAG}
-                    sleep 5
-                    docker logs ${CONTAINER_NAME}
+                    docker run -d --name ${CONTAINER_NAME} -p 8081:8080 ${DOCKER_USER}/${IMAGE_NAME}:${IMAGE_TAG}
                 '''
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub_creds', usernameVariable: 'DOCKER_HUB_USER', passwordVariable: 'DOCKER_HUB_PASS')]) {
+                withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable: 'DOCKER_HUB_USER', passwordVariable: 'DOCKER_HUB_PASS')]) {
                     sh '''
                         echo "Logging in to DockerHub..."
                         echo "$DOCKER_HUB_PASS" | docker login -u "$DOCKER_HUB_USER" --password-stdin
-                        docker tag ${DOCKER_USER}/${IMAGE_NAME}:${IMAGE_TAG} ${DOCKER_USER}/${IMAGE_NAME}:${IMAGE_TAG}
                         docker push ${DOCKER_USER}/${IMAGE_NAME}:${IMAGE_TAG}
                     '''
                 }
             }
         }
 
-        stage('Deploy to Docker Swarm') {
-            steps {
-                sh '''
-                    echo "Deploying to Docker Swarm..."
-                    docker service rm hotstar-service || true
-                    docker service create \
-                        --name hotstar-service \
-                        --publish 8082:8080 \
-                        --replicas 3 \
-                        ${DOCKER_USER}/${IMAGE_NAME}:${IMAGE_TAG}
-                '''
-            }
-        }
+       stage('Deploy to Kubernetes') {
+    steps {
+        sh '''
+        rm -rf ~/.kube/config
+        aws eks --region ap-south-1 update-kubeconfig --name mycluster2
+        kubectl get nodes
+        kubectl apply -f k8s/deployment.yml
+        kubectl apply -f k8s/service.yml
+        '''
+    }
+}
     }
 }
